@@ -1,0 +1,8 @@
+    RUMAH SAKIT IBNU SINA
+       KOTA BALIKPAPAN
+    ---------------------
+Struk Untuk Pembuatan Kartu Baru
+    No RM   : 000001
+    Nama    : JUNAEDI
+    --------------------
+    Biaya Kartu Baru Rp. 5000.

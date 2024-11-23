@@ -1,0 +1,16 @@
+function OpenPopUpVendor() {
+
+            var returnVal = new Object();
+            returnVal = window.showModalDialog("<%= GlobalFunction.ResolveUrlApplicationPath() %>PopUpForm/PopUpVendor.aspx", "returnVal", "center:yes;resizable:no;dialogHeight:285px;dialogWidth:400px;status:no");
+
+            if (returnVal != null) {
+                window.document.getElementById("<%=txtVendorID.ClientID%>").value = returnVal[0];
+                window.document.getElementById("<%=txtVendorName.ClientID%>").value = returnVal[1];
+                window.document.getElementById("<%=hiddenLifeTime.ClientID%>").value = returnVal[2];
+    
+	
+	<asp: Button ID="btnVendor" runat="server" Text="..." OnClientClick="OpenPopUpVendor()"
+                            OnClick="btnVendor_Click" TabIndex="5" style="display:none;" />
+
+vemy BL: nah yang function di atas tadi
+vemy BL: window.showModalDialog("<%= GlobalFunction.ResolveUrlApplicationPath() %>PopUpForm/PopUpVendor.aspx", "returnVal", "center:yes;resizable:no;dialogHeight:285px;dialogWidth:400px;status:no");

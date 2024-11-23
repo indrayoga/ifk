@@ -1,0 +1,12 @@
+kartu stok
+laporan distribusi (v) excel
+laporan distribusi puskesmas (v) excel
+laporan penerimaan obat gfk
+stok obat
+laporan bulanan/tahunan
+obat kadaluarsa
+obat karantina
+obat masuk
+obat keluar
+obat mutasi
+daftar stokopname

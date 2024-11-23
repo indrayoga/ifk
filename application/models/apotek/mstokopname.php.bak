@@ -1,0 +1,135 @@
+<?
+
+
+
+class Mstokopname extends CI_Model {
+
+	function __construct() {
+		
+		parent::__construct();
+	}
+	
+	
+	function sumberdana(){
+		
+		$query= $this->db->get('apt_unit');
+		return $query->result_array();
+	}
+	
+	function ambilData4($nama_obat,$kd_unit_apt){
+		
+		$query=$this->db->query("select apt_stok_unit.kd_obat,apt_obat.nama_obat,apt_satuan_kecil.satuan_kecil from apt_stok_unit,
+								apt_satuan_kecil,apt_obat,apt_unit where apt_stok_unit.kd_obat=apt_obat.kd_obat and apt_stok_unit.kd_unit_apt=apt_unit.kd_unit_apt and 
+								apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil and apt_stok_unit.kd_unit_apt='$kd_unit_apt' and 
+								apt_obat.nama_obat like '%$nama_obat%'");
+		return $query->result_array();
+	}
+	
+	function ambilData($table,$condition=""){
+		if(!empty($condition)){
+			$this->db->where($condition,null,false);
+		}
+		$query= $this->db->get($table);
+		return $query->result_array();
+	}
+	
+	function ambilItemData($table,$condition=""){
+		
+		if(!empty($condition)){
+			$this->db->where($condition,null,false);
+		}
+		$query= $this->db->get($table);
+		return $query->row_array();
+	}
+	
+    function insert($table,$data) {  
+		$this->db->insert($table,$data);
+		return true;
+    }	
+
+    function update($table,$data,$id) {
+    	if(!empty($id)){
+    		$this->db->where($id,null,false);
+    	}		
+		$this->db->update($table, $data);
+		return true;
+    }	
+
+	function delete($table,$id) {
+		$this->db->where($id,null,false);
+		$this->db->delete($table);
+		return true;
+    }
+	
+	function getStokopname($nama_obat,$kd_unit_apt){
+		
+		$this->db->select('apt_stok_unit.kd_obat,apt_obat.nama_obat,apt_satuan_kecil.satuan_kecil,apt_stok_unit.jml_stok,
+							apt_stok_unit.tgl_expire,apt_stok_unit.kd_unit_apt,apt_unit.nama_unit_apt',FALSE);
+		
+		if(!empty($nama_obat))$this->db->like('apt_obat.nama_obat',$nama_obat,'both');
+		if(!empty($kd_unit_apt))$this->db->where('apt_stok_unit.kd_unit_apt',$kd_unit_apt);
+		
+		$this->db->join('apt_stok_unit','apt_obat.kd_obat=apt_stok_unit.kd_obat','left');
+		$this->db->join('apt_unit','apt_unit.kd_unit_apt=apt_stok_unit.kd_unit_apt,'left');
+		$this->db->join('apt_satuan_kecil','apt_satuan_kecil.kd_satuan_kecil=apt_obat.kd_satuan_kecil','left');
+		$this->db->order_by('apt_stok_unit.kd_obat');
+		$query=$this->db->get("apt_obat");		
+		return $query->result_array();
+	}
+	
+	function nomor(){
+		$query=$this->db->query("select max(nomor) as kode from history_perubahan_stok");
+		$kode=$query->row_array();
+		if(empty($kode)) return 0;
+		return $kode['kode'];
+	}
+	
+	function tanggal(){
+		$query=$this->db->query("select DATE_FORMAT(sysdate(),'%Y-%m-%d') as tgl");
+		$tgl=$query->row_array();
+		return $tgl['tgl'];
+	}
+	
+	function ambilData2($kd_obat,$kd_unit_apt,$tgl_expire){
+		$query=$this->db->query("select apt_stok_unit.kd_obat,apt_obat.nama_obat,apt_stok_unit.jml_stok,apt_stok_unit.tgl_expire,apt_stok_unit.kd_unit_apt from apt_obat,apt_stok_unit,
+								apt_unit where apt_obat.kd_obat=apt_stok_unit.kd_obat and apt_stok_unit.kd_unit_apt=apt_unit.kd_unit_apt and 
+								apt_stok_unit.kd_obat='$kd_obat' and apt_stok_unit.kd_unit_apt='$kd_unit_apt' and apt_stok_unit.tgl_expire='$tgl_expire'");
+		return $query->row_array(); 			
+	}
+	
+	function namakategori($kd_kategori){
+		$query=$this->db->query("select kategori from log_kategori_barang where kd_kategori='$kd_kategori'");
+		$kategori=$query->row_array();
+		return $kategori['kategori'];
+	}
+	
+	function namaunit($kd_unit_apt){
+		$query=$this->db->query("select nama_unit_apt from apt_unit where kd_unit_apt='$kd_unit_apt'");
+		$unit=$query->row_array();
+		return $unit['nama_unit_apt'];
+	}
+	
+	function getStokopname1($kd_obat,$kd_unit_apt){
+		//$kd_unit_apt=$this->session->userdata('kd_unit_apt');
+		if($kd_unit_apt!="null" or $kd_unit_apt!=''){$a1=" and apt_stok_unit.kd_unit_apt='$kd_unit_apt'";}
+		else {$a1="";} $a=$a1;
+		
+		if($kd_obat!="null"){$c1=" and apt_stok_unit.kd_obat='$kd_obat'";}
+		else {$c1="";} $c=$c1;
+		
+		$query=$this->db->query("select apt_obat.nama_obat,apt_satuan_kecil.satuan_kecil,sum(apt_stok_unit.jml_stok) as jml_stok,apt_obat.harga_beli,
+								(apt_stok_unit.jml_stok*apt_obat.harga_beli) as nilai from apt_obat,apt_stok_unit,apt_satuan_kecil
+								where apt_stok_unit.kd_obat=apt_obat.kd_obat and apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil
+								$c $a group by apt_stok_unit.kd_obat");
+				
+		return $query->result_array(); 
+	}
+	
+	function get_all()
+    {                   
+        $query = $this->db->get('user_account');
+        return $query;
+    }
+}
+	
+?>
