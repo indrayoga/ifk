@@ -41,19 +41,19 @@ $mail->SMTPSecure = 'tls';
 $mail->SMTPAuth = true;
 
 //Username to use for SMTP authentication - use full email address for gmail
-$mail->Username = "uptdifk24@gmail.com";
+$mail->Username = "";
 
 //Password to use for SMTP authentication
-$mail->Password = "ifk_mangga$17";
+$mail->Password = "";
 
 //Set who the message is to be sent from
-$mail->setFrom('uptdifk24@gmail.com', 'IFK Balikpapan');
+$mail->setFrom('test@gmail.com', 'IFK Balikpapan');
 
 //Set an alternative reply-to address
 // $mail->addReplyTo('replyto@example.com', 'First Last');
 
 //Set who the message is to be sent to
-$mail->addAddress('indrayogapermana@gmail.com', 'Indra Yoga');
+$mail->addAddress('test@gmail.com', 'Indra Yoga');
 
 //Set the subject line
 $mail->Subject = 'PHPMailer GMail SMTP test';
