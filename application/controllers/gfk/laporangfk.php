@@ -1874,10 +1874,8 @@ class Laporangfk extends Rumahsakit {
     }
 
     public function lappenerimaanObat() {
-        if(!$this->muser->isAkses("79")){
-            $this->restricted();
-            return false;
-        }
+
+
         $periodeawal=date('d-m-Y');
         $periodeakhir=date('d-m-Y');
         $kd_unit_apt = '';

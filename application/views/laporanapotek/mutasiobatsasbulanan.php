@@ -136,7 +136,7 @@ $(document).ready(function() {
                                                     <table id="dataTable" class="table table-bordered responsive" style="position:relative;width:1200;">
                                                         <thead>
                                                             <tr style="font-size:90% !important;">
-                                                                <th style="text-align:center;vertical-align:middle;" rowspan="2" style="width:5px;">NO</th>
+                                                                <!-- <th style="text-align:center;vertical-align:middle;" rowspan="2" style="width:5px;">NO</th> -->
                                                                 <th style="text-align:center;vertical-align:middle;" rowspan="2" class="span5">NAMA OBAT</th>
                                                                 <th style="text-align:center;vertical-align:middle;" rowspan="2" class="span5">KODE SAS</th>
                                                                 <th style="text-align:center;vertical-align:middle;" rowspan="2" class="span5">SATUAN</th>
@@ -162,41 +162,36 @@ $(document).ready(function() {
                                                         </thead>
                                                         <tbody id="listmutasi">
                                                             <?php
-                                                            $no=1;
-                                                            $kdobat="";
-                                                            $persediaan=0;
-                                                            $stokakhir=0;
-                                                            foreach ($items as $item) {
-                                                                //debugvar($items);
-                                                                $saldoawal=$item['saldo_awal_apbn']+$item['saldo_awal_program']+$item['saldo_awal_apbd1']+$item['saldo_awal_apbd2']+$item['saldo_awal_lain'];
-                                                                $saldoakhir=$item['saldo_akhir_apbn']+$item['saldo_akhir_program']+$item['saldo_akhir_apbd1']+$item['saldo_akhir_apbd2']+$item['saldo_akhir_lain'];
-                                                                $penerimaan=$item['in_pbf_apbn']+$item['in_pbf_program']+$item['in_pbf_apbd1']+$item['in_pbf_apbd2']+$item['in_pbf_lain'];
-                                                                $persediaan=$saldoawal+$penerimaan;
+                                                            $obat = $this->db->query("SELECT asu.*,b.nama_obat,b.kd_satuan_kecil
+                                                                from apt_stok_unit asu 
+                                                                join apt_obat b on asu.kd_obat=b.kd_obat
+                                                                where asu.kode_sas !=''")->result_array();
+                                                            foreach($obat as $ob){
                                                             ?>
-                                                                <tr style="font-size:80% !important;">
-                                                                    <td style="text-align:center;width:5px !important;"><?php if($item['kd_obat']!=$kdobat) echo number_format($no)?></td>
-                                                                    <td style="width:25px !important;"><?php if($item['kd_obat']!=$kdobat)  echo $item['nama_obat']?></td>
-                                                                    <td style="width:25px !important;"><?php if($item['kd_obat']!=$kdobat)  echo $item['kode_sas']?></td>
-                                                                    <td style="width:25px !important;"><?php if($item['kd_obat']!=$kdobat)  echo $item['satuan_kecil']?></td> 
-                                                                    <td style="text-align:right;width:15px !important;"><?php if($item['kd_obat']!=$kdobat)  echo number_format($saldoawal,2,'.',',')?></td>
-                                                                    <td><?php echo convertDate($item['tanggal_masuk']) ?></td>
-                                                                    <td><?php echo $item['no_faktur'] ?></td>
-                                                                    <td><?php echo $item['supplier'] ?></td>
-                                                                    <td><?php echo $item['no_batch'] ?></td>
-                                                                    <td><?php echo $item['qty_kcl'] ?></td>
-                                                                    <td style="width:25px !important;"><?php if($item['kd_obat']!=$kdobat)  echo $persediaan; ?></td> 
-                                                                    <td><?php echo convertDate($item['tanggal_keluar']) ?></td>
-                                                                    <td><?php echo $item['no_sbbk'] ?></td>
-                                                                    <td><?php echo $item['customer'] ?></td>
-                                                                    <td><?php echo convertDate($item['tgl_expire']) ?></td>
-                                                                    <td><?php echo $item['qty'] ?></td>
-                                                                    <td><?php echo $item['qty'] ?></td>
-                                                                    <td style="width:25px !important;"><?php if($item['kd_obat']!=$kdobat)  echo $saldoakhir; ?></td> 
-                                                                </tr>                                                    
+                                                            <tr>
+                                                                <td><?=$ob['nama_obat']?></td>
+                                                                <td><?=$ob['kode_sas']?></td>
+                                                                <td><?=$ob['kd_satuan_kecil']?></td>
+                                                                <!-- stok awal -->
+                                                                <?php
+                                                                $so = $this->db->query("SELECT hps.kd_obat, sum(ifnull(hps.stok_baru,0)) as qty from history_perubahan_stok hps 
+                                                                        where hps.kd_unit_apt = '".$ob['kd_unit_apt']."' 
+                                                                        and hps.kd_obat = '".$ob['kd_obat']."' 
+                                                                        and hps.kd_pabrik = '".$ob['kd_pabrik']."' 
+                                                                        and hps.tgl_expired = '".$ob['tgl_expire']."' 
+                                                                        and hps.batch = '".$ob['batch']."' 
+                                                                        group by hps.kd_obat ")->row_array();
+                                                                ?>
+                                                                <td><?php 
+                                                                if(empty($so)){
+                                                                    echo 0;
+                                                                }else{
+                                                                    echo $so['qty'];
+                                                                }
+                                                                ?></td>
+                                                            </tr>
                                                             <?php
-                                                             if($item['kd_obat']!=$kdobat)  $no++;
-                                                            $kdobat=$item['kd_obat'];
-                                                            }                                                           
+                                                            }
                                                             ?>
                                                         </tbody>
                                                     </table>

@@ -94,7 +94,7 @@ function SelectSelectableElement (selectableContainer, elementsToSelect)
                                             <div class="toolbar" style="height:auto;">
                                                 <ul class="nav nav-tabs">
                                                     <!--li><a target="_blank" class="btn" style="border-style:solid;border-width:1px;line-height: 21px !important;padding: 4px 12px;border-bottom:1px solid !important;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) #B3B3B3 !important;" href="<-?php echo base_url() ?>third-party/fpdf/kartustok.php?kd_obat=<-?php echo $kd_obat ?>&kd_unit_apt=<-?php echo $kd_unit_apt; ?>&bulan=<-?php echo $bulan; ?>&tahun=<-?php echo $tahun; ?>"> <i class="icon-print"></i> PDF</a></li-->
-                                                    <li><a target="" class="btn" style="border-style:solid;border-width:1px;line-height: 21px !important;padding: 4px 12px;border-bottom:1px solid !important;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) #B3B3B3 !important;" href="<?php echo base_url() ?>index.php/transapotek/laporanapt/rl1excelkartustok/<?php echo $kd_obat ?>/<?php echo $kd_unit_apt; ?>/<?php echo $bulan; ?>/<?php echo $tahun; ?>"> <i class="icon-print"></i> Export to Excel</a></li>
+                                                    <li><a target="" class="btn" style="border-style:solid;border-width:1px;line-height: 21px !important;padding: 4px 12px;border-bottom:1px solid !important;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) #B3B3B3 !important;" href="<?php echo base_url() ?>index.php/transapotek/laporanapt/rl1excelkartustokbatch/<?php echo $kd_obat ?>/<?php echo $kd_unit_apt; ?>/<?php echo $batch; ?>/<?php echo $bulan; ?>/<?php echo $tahun; ?>"> <i class="icon-print"></i> Export to Excel</a></li>
 													<li>
                                                         <a class="accordion-toggle minimize-box" data-toggle="collapse" href="#div-1">
                                                             <i class="icon-chevron-up"></i>
@@ -131,6 +131,7 @@ function SelectSelectableElement (selectableContainer, elementsToSelect)
                                                     <div class="controls with-tooltip">
 														<input type="text" id="nama_obat" autocomplete="off" name="nama_obat" value="<?php echo $nama_obat?>" class="span5 input-tooltip" data-original-title="nama obat" data-placement="bottom"/>
 														<input type="hidden" id="kd_obat" name="kd_obat" value="<?php echo $kd_obat?>" class="span3 input-tooltip" data-original-title="kd obat" data-placement="bottom"/>
+														<input type="hidden" id="batch" name="batch" value="<?php echo $batch?>" class="span3 input-tooltip" data-original-title="kd obat" data-placement="bottom"/>
                                                     </div>
                                                 </div>
                                                 <div class="control-group">
@@ -161,6 +162,7 @@ function SelectSelectableElement (selectableContainer, elementsToSelect)
                                                         <th style="text-align:center;">No</th>
                                                         <th style="text-align:center;">Tanggal</th>
                                                         <th style="text-align:center;">Keterangan</th>
+                                                        <th style="text-align:center;">No Batch</th>
 														<th style="text-align:center;">Unit / Vendor</th>
 														<th style="text-align:center;">No. Bukti</th>
 														<th style="text-align:center;">Masuk</th>
@@ -210,13 +212,12 @@ function SelectSelectableElement (selectableContainer, elementsToSelect)
                                                                     if($item['status']=='D')echo "Disposal";
                                                                     ?>
                                                             </td>
+															<td style="text-align:center;"><?php echo $item['batch'] ?></td>
 															<td style="text-align:center;"><?php echo $item['unitvendor'] ?></td>
 															<td style="text-align:center;"><?php echo $item['id_join'] ?></td>
 															<td style="text-align:right;"><?php if(in_array($item['status'],array('SO','M')))echo $item['qty']; ?></td>
 															<td style="text-align:right;"><?php if(in_array($item['status'],array('K','D')))echo $item['qty']; ?></td>
 															<td style="text-align:right;"><?php echo $saldo1 ?></td>
-															<!-- <td style="text-align:right;"><?php echo $saldoakhir; ?></td> -->
-															<!--td style="text-align:right;"><-?php echo $item[''] ?></td-->
                                                         </tr>                                                    
                                                     <?php
                                                     $no++;
@@ -294,9 +295,10 @@ function SelectSelectableElement (selectableContainer, elementsToSelect)
 		}
 	});
 	
-	function pilihobat(kd_obat,nama_obat) {
+	function pilihobat(kd_obat,nama_obat,batch) {
 		$('#kd_obat').val(kd_obat);
         $('#nama_obat').val(nama_obat);
+        $('#batch').val(batch);
 		$('#daftarobat').modal("hide");
         $('#bulan').focus();
     }
@@ -315,6 +317,7 @@ function SelectSelectableElement (selectableContainer, elementsToSelect)
 				"sServerMethod": "POST",
 				"fnServerParams": function ( aoData ) {
                     aoData.push( { "name": "nama_obat", "value":""+$('#nama_obat').val()+""} );
+                    aoData.push( { "name": "batch", "value":""+$('#batch').val()+""} );
                     aoData.push( { "name": "kd_unit_apt", "value":""+$('#kd_unit_apt').val()+""} );
 				}
 				

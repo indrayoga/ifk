@@ -454,7 +454,7 @@ return true;
 												<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class=" icon-doc-1"></i>Laporan 2024</a>
 												<ul class="dropdown-menu submenu-show submenu-hide">													
                                                     <li><a href="<?php echo base_url() ?>index.php/transapotek/laporanapt/kartustokbatch"><i class="icon-angle-right"></i> Kartu Stok Per Batch</a></li> 
-                                                    <li><a href="<?php echo base_url() ?>index.php/transapotek/laporangfk/lappenerimaanObat"><i class="icon-angle-right"></i> Laporan Penerimaan Per harga</a></li> 
+                                                    <li><a href="<?php echo base_url() ?>index.php/gfk/laporangfk/lappenerimaanObat"><i class="icon-angle-right"></i> Laporan Penerimaan Per harga</a></li> 
                                                 </ul>
                                             </li>
                                         </ul>

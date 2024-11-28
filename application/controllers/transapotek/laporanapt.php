@@ -430,8 +430,10 @@ class Laporanapt extends Rumahsakit {
 		$nama_obat='';
 		$kd_obat='';
 		$kd_unit_apt='';
+		$batch=$this->input->post('batch');
 		$bulan=date('m');
 		$tahun=date('Y');
+		// die($batch);
 		$submit1=$this->input->post('submit1');
 		
 		if($this->input->post('kd_unit_apt')!=''){
@@ -470,10 +472,11 @@ class Laporanapt extends Rumahsakit {
 		$jsfooter=array();
 		$datafooter=array('jsfile'=>$jsfooter);
 		$data=array('sumberdana'=>$this->mlaporanapt->sumberdana(),
-					'items'=>$this->mlaporanapt->getKartuStokBatch($kd_obat,$kd_unit_apt),
+					'items'=>$this->mlaporanapt->getKartuStokBatch($kd_obat,$batch,$kd_unit_apt),
 					'nama_obat'=>$nama_obat,
 					'kd_obat'=>$kd_obat,
 					'kd_unit_apt'=>$kd_unit_apt,
+					'batch'=>$batch,
 					'bulan'=>$bulan,
 					'tahun'=>$tahun);
 		// debugvar($data['items']);
@@ -509,7 +512,7 @@ class Laporanapt extends Rumahsakit {
 		$this->datatables->select('apt_stok_unit.kd_obat, replace(apt_obat.nama_obat,"\'","") as nama_obat,apt_stok_unit.kd_pabrik,apt_stok_unit.batch,apt_stok_unit.tgl_expire,apt_stok_unit.harga_pokok, "Pilihan" as pilihan',false);
 		$this->datatables->join('apt_obat','apt_stok_unit.kd_obat=apt_obat.kd_obat');
 		$this->datatables->from("apt_stok_unit");
-		$this->datatables->edit_column('pilihan', '<a class="btn" onclick=\'pilihobat("$1","$2","$3")\'>Pilih</a>','apt_stok_unit.kd_obat, nama_obat');		
+		$this->datatables->edit_column('pilihan', '<a class="btn" onclick=\'pilihobat("$1","$2","$3")\'>Pilih</a>','apt_stok_unit.kd_obat, nama_obat,apt_stok_unit.batch');		
 		if(!empty($nama_obat))$this->datatables->like('nama_obat',$nama_obat,'both');
 		if(!empty($kd_unit_apt))$this->datatables->where('kd_unit_apt',$kd_unit_apt);
 		
@@ -854,7 +857,6 @@ class Laporanapt extends Rumahsakit {
 					'bulan'=>$bulan,
 					'tahun'=>$tahun,
 					'kd_unit_apt'=>$kd_unit_apt);
-		
 		$this->load->view('headerapotek',$dataheader);
 		$this->load->view('laporanapotek/mutasiobatsasbulanan',$data);
 		$this->load->view('footer',$datafooter);
@@ -2719,6 +2721,178 @@ public function tutupbulan(){
 		header("Location: ".base_url()."download/kartustokobat.xls");
 	}
 	
+	public function rl1excelkartustokbatch($kd_obat="",$kd_unit_apt="",$batch="",$bulan="",$tahun=""){
+		// $queryjudul=mysql_query("select nama from simpus_puskesmas");
+		// $judul=mysql_fetch_array($queryjudul);
+		$this->load->library('phpexcel'); 
+		$this->load->library('PHPExcel/iofactory');
+		$objPHPExcel = new PHPExcel(); 
+		$objPHPExcel->getProperties()->setTitle("title")->setDescription("description");
+		$objPHPExcel->getActiveSheet()->mergeCells('A2:H2');
+		$objPHPExcel->getActiveSheet()->mergeCells('A3:H3');
+		//$objPHPExcel->getActiveSheet()->mergeCells('A4:H4');
+		$objPHPExcel->getActiveSheet()->mergeCells('A5:H5');
+		$objPHPExcel->getActiveSheet()->mergeCells('A6:H6');
+		$objPHPExcel->getActiveSheet()->mergeCells('A8:B8');
+		$objPHPExcel->getActiveSheet()->mergeCells('A9:B9');
+		$objPHPExcel->getActiveSheet()->mergeCells('A10:B10');
+
+		//$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(0)->setWidth(2.14); 
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(0)->setWidth(4.34); //NO
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(1)->setWidth(18); //TGL
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(2)->setWidth(22); //KETERANGAN
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(3)->setWidth(25); //UNIT VENDOR
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(4)->setWidth(15); //NO BUKTI
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(5)->setWidth(7); //MASUK
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(6)->setWidth(7); //KELUAR
+		$objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(7)->setWidth(7); //SALDO
+		
+		for($x='A';$x<='H';$x++){ //bwt judul2nya
+			$objPHPExcel->getActiveSheet()->getStyle($x.'2')->getAlignment()->applyFromArray(
+				array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));
+		}	
+		for($x='A';$x<='H';$x++){
+			$objPHPExcel->getActiveSheet()->getStyle($x.'3')->getAlignment()->applyFromArray(
+				array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));
+		}	
+		for($x='A';$x<='H';$x++){
+			$objPHPExcel->getActiveSheet()->getStyle($x.'5')->getAlignment()->applyFromArray(
+				array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));
+		}	
+		for($x='A';$x<='H';$x++){
+			$objPHPExcel->getActiveSheet()->getStyle($x.'6')->getAlignment()->applyFromArray(
+				array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));
+		}
+				
+		// $objPHPExcel->getActiveSheet()->setCellValue ('A2',''.$judul['nama']);
+
+		$objPHPExcel->getActiveSheet()->setCellValue ('A3','Kota Balikpapan');		
+		$objPHPExcel->getActiveSheet()->setCellValue ('A5','Kartu Stok Obat');		
+		$bulan1="";
+		if($bulan=='01'){$bulan1='Januari';} 	 if($bulan=='02'){$bulan1='Februari';}	if($bulan=='03'){$bulan1='Maret';} 	  if($bulan=='04'){$bulan1='April';}
+		if($bulan=='05'){$bulan1='Mei';} 		 if($bulan=='06'){$bulan1='Juni';} 		if($bulan=='07'){$bulan1='Juli';} 	  if($bulan=='08'){$bulan1='Agustus';}
+		if($bulan=='09'){$bulan1='September';}   if($bulan=='10'){$bulan1='Oktober';}	if($bulan=='11'){$bulan1='November';} if($bulan=='12'){$bulan1='Desember';}
+		$objPHPExcel->getActiveSheet()->setCellValue ('A6',$bulan1.' '.$tahun);
+		
+		$objPHPExcel->getActiveSheet()->setCellValue ('A8','Kode Obat');
+		$objPHPExcel->getActiveSheet()->setCellValue ('A9','Nama Obat');
+		$objPHPExcel->getActiveSheet()->setCellValue ('A10','Sumber Dana');
+		
+		if($kd_obat==''){$objPHPExcel->getActiveSheet()->setCellValue ('C8',' : -');}
+		else{$objPHPExcel->getActiveSheet()->setCellValue ('C8',' : '.$kd_obat);}
+		$namaobat=$this->mlaporanapt->namaObat($kd_obat);
+		//debugvar($namaobat);
+		if($namaobat=='0' or $namaobat=='') {$objPHPExcel->getActiveSheet()->setCellValue ('C9',' : -');}
+		else {$objPHPExcel->getActiveSheet()->setCellValue ('C9',' : '.$namaobat);}
+		
+		$namaunit=$this->mlaporanapt->namaUnit($kd_unit_apt);
+		if($namaunit=='0' or $namaunit=='') {$objPHPExcel->getActiveSheet()->setCellValue ('C10',' : -');}
+		else {$objPHPExcel->getActiveSheet()->setCellValue ('C10',' : '.$namaunit);}
+		
+		
+		for($x='A';$x<='H';$x++){
+			$objPHPExcel->getActiveSheet()->getStyle($x.'11')->getAlignment()->applyFromArray(
+				array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));
+		
+			$objPHPExcel->getActiveSheet()->getStyle($x.'11')->applyFromArray(array('font'    => array('name'      => 'calibri','horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+																			'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'size'		=>10 /*untuk ukuran tulisan judul kolom2 di tabel*/,'color'     => array('rgb' => '000000')),
+																			'borders' => array('bottom'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => '000000')),
+																			'top'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => '000000')),
+																			'left'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => '000000')),
+																			'right'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => '000000')))));
+		}		
+		$objPHPExcel->getActiveSheet()->setCellValue ('A11','NO.');
+		$objPHPExcel->getActiveSheet()->setCellValue ('B11','TANGGAL');
+		$objPHPExcel->getActiveSheet()->setCellValue ('C11','KETERANGAN');
+		$objPHPExcel->getActiveSheet()->setCellValue ('D11','UNIT/VENDOR');
+		$objPHPExcel->getActiveSheet()->setCellValue ('E11','NO. BUKTI');
+		$objPHPExcel->getActiveSheet()->setCellValue ('F11','MASUK');
+		$objPHPExcel->getActiveSheet()->setCellValue ('G11','KELUAR');
+		$objPHPExcel->getActiveSheet()->setCellValue ('H11','SALDO');
+		$items=array();
+		$items=$this->mlaporanapt->getKartuStokBatch($kd_obat,$batch,$kd_unit_apt);
+		$baris=12;
+		$nomor=1;
+		$total=0;
+		$saldo1=0;
+		$saldoakhir=0;
+		$totalkeluar=0;
+		$totalmasuk=0;
+		foreach ($items as $item) {
+			# code...
+			for($x='A';$x<='H';$x++){
+				if($x=='A'){
+					$objPHPExcel->getActiveSheet()->getStyle($x.$baris)->getAlignment()->applyFromArray(
+						array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));					
+				}else if($x=='B'){
+					$objPHPExcel->getActiveSheet()->getStyle($x.$baris)->getAlignment()->applyFromArray(
+						array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));										
+				}else if($x=='D'){
+					$objPHPExcel->getActiveSheet()->getStyle($x.$baris)->getAlignment()->applyFromArray(
+						array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));										
+				}else if($x=='E'){
+					$objPHPExcel->getActiveSheet()->getStyle($x.$baris)->getAlignment()->applyFromArray(
+						array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));										
+				}else if($x=='F'){
+					$objPHPExcel->getActiveSheet()->getStyle($x.$baris)->getAlignment()->applyFromArray(
+						array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));										
+				}else if($x=='G'){
+					$objPHPExcel->getActiveSheet()->getStyle($x.$baris)->getAlignment()->applyFromArray(
+						array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,'rotation'   => 0,));										
+				}				
+				$objPHPExcel->getActiveSheet()->getStyle($x.$baris)->applyFromArray(array(
+					'font'    => array('name'      => 'calibri','horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+					'size'		=>10 /*untuk ukuran tulisan yg hasil query bwt yg di dlm tabel*/,'color'     => array('rgb' => '000000')),'borders' => array('bottom'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,
+					'color' => array('rgb' => '000000')),'top'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => '000000')),
+					'left'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => '000000')),'right'     => array('style' => PHPExcel_Style_Border::BORDER_THIN,
+					'color' => array('rgb' => '000000')))));
+			}
+			// if($item['status']=="M"){ $saldo1=$item['masuk']+$saldoakhir; 
+			// }else if($item['status']=="K"){ $saldo1=$saldoakhir-$item['keluar'];
+			// }else{ if($item['saldo']==''){ $saldo1=0; }
+			// 	   else{ $saldo1=$item['saldo']; }
+			// }
+			// $saldoakhir=$saldo1;
+			if($item['status']=="M"){
+			$saldo1=$item['qty']+$saldoakhir; //nti ditambah ama sebelumnya
+			$totalmasuk=$totalmasuk+$item['qty'];
+			}else if($item['status']=="K"){
+			$saldo1=$saldoakhir-$item['qty'];//nti dikurang ama sebelumnya                                                           
+			$totalkeluar=$totalkeluar+$item['qty'];
+			}else if($item['status']=="SO"){
+			$totalmasuk=$totalmasuk+$item['qty'];
+			$saldo1+=$item['qty']; //nti ditambah ama sebelumnya
+			//$totalkeluar=$totalkeluar+$item['keluar'];
+			}
+			$saldoakhir=$saldo1;
+
+			$ket = '';
+			if($item['status']=='SO')$ket = "SO";
+			if($item['status']=='M')$ket = "Penerimaan";
+			if($item['status']=='K')$ket = "Pengeluaran";
+			if($item['status']=='D')$ket = "Disposal";
+
+			
+			$objPHPExcel->getActiveSheet()->setCellValue ('A'.$baris,$nomor);
+			$objPHPExcel->getActiveSheet()->setCellValue ('B'.$baris,$item['tanggal']);
+			$objPHPExcel->getActiveSheet()->setCellValue ('C'.$baris,$ket);
+			$objPHPExcel->getActiveSheet()->setCellValue ('D'.$baris,$item['unitvendor']);
+			$objPHPExcel->getActiveSheet()->setCellValue ('E'.$baris,$item['id_join']);
+			if(in_array($item['status'],array('SO','M'))){
+				$objPHPExcel->getActiveSheet()->setCellValue ('F'.$baris,$item['qty']);						
+			}
+			if(in_array($item['status'],array('K','D'))){
+				$objPHPExcel->getActiveSheet()->setCellValue ('G'.$baris,$item['qty']);						
+			}
+				$objPHPExcel->getActiveSheet()->setCellValue ('H'.$baris,$saldo1);						
+			$nomor=$nomor+1; 
+			$baris=$baris+1;
+		}	
+		$objWriter = IOFactory::createWriter($objPHPExcel, 'Excel5'); 
+		$objWriter->save("download/kartustokobat.xls");
+		header("Location: ".base_url()."download/kartustokobat.xls");
+	}
+
 	public function excellplpo($bulan="",$tahun="",$kd_unit_apt=""){
 		if($kd_unit_apt=="NULL")$kd_unit_apt="";
 		$this->load->library('phpexcel'); 

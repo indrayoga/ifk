@@ -107,7 +107,7 @@ class Automate extends CI_Controller
                     'qty' => $obatKeluar->qty,
                     'status' => 'K',
                     'id_join' => $obatKeluar->no_penjualan,
-                    'kode_sas' => $obatKeluar->kode_sas
+                    // 'kode_sas' => $obatKeluar->kode_sas
                 ));
                 $stok_keluar += $obatKeluar->qty;
             }
@@ -142,6 +142,8 @@ class Automate extends CI_Controller
                 $stok_keluar += $obatDisposal->qty;
             }
 
+            echo $stok. PHP_EOL;;
+            echo $stok_keluar. PHP_EOL;;
             // //update jumlah stok
             $this->db->update('apt_stok_unit',array(
                 'stok' => $stok,

@@ -289,9 +289,9 @@ class Mlaporanapt extends CI_Model {
 		return $query->result_array();
 	}
 	
-	function getKartuStokBatch($kd_obat,$kd_unit_apt){
+	function getKartuStokBatch($kd_obat,$batch,$kd_unit_apt){
 		
-		$query = $this->db->select('obat_history.kode_obat,obat_history.status,obat_history.tanggal,ifnull(apt_supplier.nama,ifnull(gfk_puskesmas.nama,"SO")) as unitvendor,id_join,obat_history.qty',false)
+		$query = $this->db->select('obat_history.kode_obat,obat_history.status,obat_history.tanggal,obat_history.batch,ifnull(apt_supplier.nama,ifnull(gfk_puskesmas.nama,"SO")) as unitvendor,id_join,obat_history.qty',false)
 		->join('apt_penerimaan','obat_history.id_join=apt_penerimaan.no_penerimaan','left')
 		->join('apt_supplier','apt_penerimaan.kd_supplier=apt_supplier.kd_supplier','left')
 		->join('apt_penjualan','obat_history.id_join=apt_penjualan.no_penjualan','left')
@@ -299,7 +299,12 @@ class Mlaporanapt extends CI_Model {
 		->join('apt_disposal','obat_history.id_join=apt_disposal.no_disposal','left')
 					->order_by('obat_history.tanggal','asc')
 					->order_by('obat_history.status','desc')
-					->get_where('obat_history',array('kode_obat'=>$kd_obat,'obat_history.kd_unit_apt' => $kd_unit_apt));
+					->get_where('obat_history',
+								array(
+										'kode_obat'=>$kd_obat,
+										'obat_history.batch'=>$batch,
+										'obat_history.kd_unit_apt' => $kd_unit_apt
+									));
 
 		return $query->result_array();
 	}
@@ -700,13 +705,13 @@ class Mlaporanapt extends CI_Model {
 
 	function getMutasiObatSasBulanan($kd_unit_apt,$bulan,$tahun){
 				if(empty($kd_unit_apt)){
-					$query=$this->db->query(" SELECT apt_obat.kd_obat,apt_obat.nama_obat,apt_stok_unit.kode_sas,apt_satuan_kecil.satuan_kecil,
+					$query=$this->db->query(" SELECT apt_obat.kd_obat,apt_obat.nama_obat,apt_satuan_kecil.satuan_kecil,
 					ifnull(apbd1.saldo_awal,0) as saldo_awal_apbd1,ifnull(apbd2.saldo_awal,0) as saldo_awal_apbd2,ifnull(lain.saldo_awal,0) as saldo_awal_lain,ifnull(apbn.saldo_awal,0) as saldo_awal_apbn,ifnull(program.saldo_awal,0) as saldo_awal_program,
 					ifnull(apbd1.saldo_akhir,0) as saldo_akhir_apbd1,ifnull(apbd2.saldo_akhir,0) as saldo_akhir_apbd2,ifnull(lain.saldo_akhir,0) as saldo_akhir_lain,ifnull(apbn.saldo_akhir,0) as saldo_akhir_apbn,ifnull(program.saldo_akhir,0) as saldo_akhir_program,
 					ifnull(apbd1.in_pbf,0) as in_pbf_apbd1,ifnull(apbd2.in_pbf,0) as in_pbf_apbd2,ifnull(lain.in_pbf,0) as in_pbf_lain,ifnull(apbn.in_pbf,0) as in_pbf_apbn,ifnull(program.in_pbf,0) as in_pbf_program,
 					penerimaan.*,pengeluaran.*,apt_obat.kd_obat
 					FROM apt_obat left join apt_satuan_kecil on apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil
-					join apt_stok_unit on apt_obat.kd_obat=apt_stok_unit.kd_obat and (apt_stok_unit.kode_sas != '' or apt_stok_unit.kode_sas is not NULL)
+					join lap_sediaan_psikotropika on apt_obat.kd_obat=lap_sediaan_psikotropika.kd_obat
 					left join (
 						select apt_mutasi_obat.kd_obat,
 											saldo_awal,
@@ -766,6 +771,7 @@ class Mlaporanapt extends CI_Model {
 						select kd_obat,no_sbbk,date(tgl_penjualan) as tanggal_keluar,a1.nama as customer,b.tgl_expire,b.qty from apt_penjualan a join gfk_puskesmas a1 on a.customer_id=a1.id 
 						join apt_penjualan_detail b on a.no_penjualan=b.no_penjualan where month(tgl_penjualan)='$bulan' and year(tgl_penjualan)='$tahun'
 						) as pengeluaran on apt_obat.kd_obat=pengeluaran.kd_obat
+						order by urut
 					");
 
 				}else{
