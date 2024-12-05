@@ -1,32 +1,3 @@
-```
-select
-*
-from
-(
-SELECT
-asu.*,
-b.nama_obat,
-b.kd_satuan_kecil
-from
-apt_stok_unit asu
-join apt_obat b on
-asu.kd_obat = b.kd_obat
-where
-asu.kode_sas != ''
-) as obat
-left join (
-SELECT
-hps.kd_unit_apt,hps.kd_obat,hps.kd_pabrik,hps.tgl_expired,hps.batch,hps.harga,
-sum(ifnull(hps.stok_baru, 0)) as qty
-from
-history_perubahan_stok hps
-group by
-hps.kd_unit_apt,hps.kd_obat,hps.kd_pabrik,hps.tgl_expired,hps.batch,hps.harga
-) as so on obat.kd_unit_apt = so.kd_unit_apt and obat.kd_obat = so.kd_obat
-and obat.kd_pabrik = so.kd_pabrik and obat.tgl_expire = so.tgl_expired
-and obat.batch = so.batch and obat.harga_pokok = so.harga
-```
-
 <?
 class Mlaporanapt extends CI_Model
 {
@@ -799,94 +770,124 @@ class Mlaporanapt extends CI_Model
 		return $query->result_array();
 	}
 
-	function getMutasiObatSasBulanan($kd_unit_apt, $bulan, $tahun)
+	function getMutasiObatSasBulanan($kd_unit_apt, $bulan, $bulan1, $tahun, $kd_nomenklatur = '', $kategori = '')
 	{
-		if (empty($kd_unit_apt)) {
-			$query = $this->db->query(" SELECT apt_obat.kd_obat,apt_obat.nama_obat,apt_satuan_kecil.satuan_kecil,
-					ifnull(apbd1.saldo_awal,0) as saldo_awal_apbd1,ifnull(apbd2.saldo_awal,0) as saldo_awal_apbd2,ifnull(lain.saldo_awal,0) as saldo_awal_lain,ifnull(apbn.saldo_awal,0) as saldo_awal_apbn,ifnull(program.saldo_awal,0) as saldo_awal_program,
-					ifnull(apbd1.saldo_akhir,0) as saldo_akhir_apbd1,ifnull(apbd2.saldo_akhir,0) as saldo_akhir_apbd2,ifnull(lain.saldo_akhir,0) as saldo_akhir_lain,ifnull(apbn.saldo_akhir,0) as saldo_akhir_apbn,ifnull(program.saldo_akhir,0) as saldo_akhir_program,
-					ifnull(apbd1.in_pbf,0) as in_pbf_apbd1,ifnull(apbd2.in_pbf,0) as in_pbf_apbd2,ifnull(lain.in_pbf,0) as in_pbf_lain,ifnull(apbn.in_pbf,0) as in_pbf_apbn,ifnull(program.in_pbf,0) as in_pbf_program,
-					penerimaan.*,pengeluaran.*,apt_obat.kd_obat
-					FROM apt_obat left join apt_satuan_kecil on apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil
-					join lap_sediaan_psikotropika on apt_obat.kd_obat=lap_sediaan_psikotropika.kd_obat
-					left join (
-						select apt_mutasi_obat.kd_obat,
-											saldo_awal,
-											in_pbf,
-											saldo_akhir
-											from apt_obat,apt_mutasi_obat
-											where apt_mutasi_obat.kd_obat=apt_obat.kd_obat and apt_mutasi_obat.kd_unit_apt='D02' and
-											apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun'
-											group by apt_mutasi_obat.kd_obat
-						) as apbd1 on apt_obat.kd_obat=apbd1.kd_obat 
-					left join (
-						select apt_mutasi_obat.kd_obat,
-											saldo_awal,
-											in_pbf,
-											saldo_akhir
-											from apt_obat,apt_mutasi_obat
-											where apt_mutasi_obat.kd_obat=apt_obat.kd_obat and apt_mutasi_obat.kd_unit_apt='D03' and
-											apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun'
-											group by apt_mutasi_obat.kd_obat
-						) as apbd2 on apt_obat.kd_obat=apbd2.kd_obat
-					left join (
-						select apt_mutasi_obat.kd_obat,
-											saldo_awal,
-											in_pbf,
-											saldo_akhir
-											from apt_obat,apt_mutasi_obat
-											where apt_mutasi_obat.kd_obat=apt_obat.kd_obat and apt_mutasi_obat.kd_unit_apt='D04' and
-											apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun'
-											group by apt_mutasi_obat.kd_obat
-
-						) as lain on apt_obat.kd_obat=lain.kd_obat
-					left join (
-						select apt_mutasi_obat.kd_obat,
-											saldo_awal,
-											in_pbf,
-											saldo_akhir
-											from apt_obat,apt_mutasi_obat
-											where apt_mutasi_obat.kd_obat=apt_obat.kd_obat and apt_mutasi_obat.kd_unit_apt='apb' and
-											apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun'
-											group by apt_mutasi_obat.kd_obat
-
-						) as apbn on apt_obat.kd_obat=apbn.kd_obat
-					left join (
-						select apt_mutasi_obat.kd_obat,
-											saldo_awal,
-											in_pbf,
-											saldo_akhir
-											from apt_obat,apt_mutasi_obat
-											where apt_mutasi_obat.kd_obat=apt_obat.kd_obat and apt_mutasi_obat.kd_unit_apt='U02' and
-											apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun'
-											group by apt_mutasi_obat.kd_obat
-						) as program on apt_obat.kd_obat=program.kd_obat
-					left join(
-						select kd_obat,no_faktur,date(tgl_penerimaan) as tanggal_masuk,a1.nama as supplier,b.no_batch,b.qty_kcl from apt_penerimaan a join apt_supplier a1 on a.kd_supplier=a1.kd_supplier 
-						join apt_penerimaan_detail b on a.no_penerimaan=b.no_penerimaan where month(tgl_penerimaan)='$bulan' and year(tgl_penerimaan)='$tahun' ) as penerimaan on apt_obat.kd_obat=penerimaan.kd_obat
-					left join(
-						select kd_obat,no_sbbk,date(tgl_penjualan) as tanggal_keluar,a1.nama as customer,b.tgl_expire,b.qty from apt_penjualan a join gfk_puskesmas a1 on a.customer_id=a1.id 
-						join apt_penjualan_detail b on a.no_penjualan=b.no_penjualan where month(tgl_penjualan)='$bulan' and year(tgl_penjualan)='$tahun'
-						) as pengeluaran on apt_obat.kd_obat=pengeluaran.kd_obat
-						order by urut
-					");
+		if ($kd_unit_apt == "null") $kd_unit_apt = "";
+		$nomen = (!empty($kd_nomenklatur) ? " and apt_obat.kd_nomenklatur = '$kd_nomenklatur'" : "");
+		if (!empty($kategori)) {
+			if ($kategori == 2) {
+				$kat = "AND apt_obat.kd_obat like '%c19%'";
+			} else {
+				$kat = "AND apt_obat.kd_obat not like '%c19%'";
+			}
 		} else {
-			$query = $this->db->query("select apt_satuan_kecil.satuan_kecil,apt_mutasi_obat.kd_obat,apt_obat.nama_obat,ifnull(sum(apt_mutasi_obat.in_pbf),0) as in_pbf,ifnull(sum(apt_mutasi_obat.in_unit),0) as in_unit,ifnull(sum(apt_mutasi_obat.retur_jual),0) as retur_jual,
+			$kat = "";
+		}
+		if (empty($kd_unit_apt)) {
+			/*$query=$this->db->query("select apt_satuan_kecil.satuan_kecil,apt_mutasi_obat.kd_obat,apt_obat.nama_obat,ifnull(sum(apt_mutasi_obat.in_pbf),0) as in_pbf,ifnull(sum(apt_mutasi_obat.in_unit),0) as in_unit,ifnull(sum(apt_mutasi_obat.retur_jual),0) as retur_jual,
 					ifnull(sum(apt_mutasi_obat.out_jual),0) as out_jual,ifnull(sum(apt_mutasi_obat.out_unit),0) as out_unit,ifnull(sum(apt_mutasi_obat.retur_pbf),0) as retur_pbf,ifnull(sum(apt_mutasi_obat.harga_beli),0) as harga_beli,
 					ifnull(sum(apt_mutasi_obat.stok_opname),0) as stok_opname,ifnull(sum(apt_mutasi_obat.harga_beli),0) as harga_beli,ifnull(sum((apt_mutasi_obat.saldo_awal*apt_mutasi_obat.harga_beli)),0) as total_awal,
 					ifnull(sum(((apt_mutasi_obat.in_pbf+apt_mutasi_obat.in_unit)-apt_mutasi_obat.retur_pbf)),0) as jum_masuk, ifnull(sum((((apt_mutasi_obat.in_pbf+apt_mutasi_obat.in_unit)-apt_mutasi_obat.retur_pbf)*apt_mutasi_obat.harga_beli)),0) as total_masuk,
 					ifnull(sum(((apt_mutasi_obat.out_jual+apt_mutasi_obat.out_unit)-apt_mutasi_obat.retur_jual)),0) as jum_keluar,
 					ifnull(sum((((apt_mutasi_obat.out_jual+apt_mutasi_obat.out_unit)-apt_mutasi_obat.retur_jual)*apt_mutasi_obat.harga_beli)),0) as total_keluar,
 					ifnull(sum((apt_mutasi_obat.saldo_akhir*apt_mutasi_obat.harga_beli)),0) as total_akhir,x.saldo_awal,x1.saldo_akhir
-					from apt_obat,apt_satuan_kecil,apt_mutasi_obat left join (select ifnull(sum(apt_mutasi_obat.saldo_awal),0) as saldo_awal,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun' and apt_mutasi_obat.kd_unit_apt='$kd_unit_apt' group by apt_mutasi_obat.kd_obat) as x on apt_mutasi_obat.kd_obat=x.kd_obat
-					left join (select ifnull(sum(apt_mutasi_obat.saldo_akhir),0) as saldo_akhir,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan1' and apt_mutasi_obat.tahun='$tahun' and apt_mutasi_obat.kd_unit_apt='$kd_unit_apt' group by apt_mutasi_obat.kd_obat) as x1 on apt_mutasi_obat.kd_obat=x1.kd_obat
-					where apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil and apt_mutasi_obat.kd_obat=apt_obat.kd_obat and apt_mutasi_obat.kd_unit_apt='$kd_unit_apt' and
+					from apt_obat,apt_satuan_kecil,apt_mutasi_obat left join (select ifnull(sum(apt_mutasi_obat.saldo_awal),0) as saldo_awal,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun' group by apt_mutasi_obat.kd_obat) as x on apt_mutasi_obat.kd_obat=x.kd_obat
+					left join (select ifnull(sum(apt_mutasi_obat.saldo_akhir),0) as saldo_akhir,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan1' and apt_mutasi_obat.tahun='$tahun' group by apt_mutasi_obat.kd_obat) as x1 on apt_mutasi_obat.kd_obat=x1.kd_obat
+					where apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil and apt_mutasi_obat.kd_obat=apt_obat.kd_obat and
 					apt_mutasi_obat.bulan>='$bulan' and apt_mutasi_obat.bulan<='$bulan1' and apt_mutasi_obat.tahun='$tahun'
 					group by apt_mutasi_obat.kd_obat
 					having saldo_awal > 0 or in_pbf > 0  or in_unit > 0  or retur_jual > 0  or out_jual > 0  or out_unit > 0  or retur_pbf > 0  or saldo_akhir >0  or stok_opname > 0
+					order by apt_mutasi_obat.kd_obat");*/
+			$query = $this->db->query("select apt_satuan_kecil.satuan_kecil,apt_mutasi_obat.kd_obat,apt_obat.nama_obat,
+					apt_mutasi_obat.kd_unit_apt,
+					apt_mutasi_obat.kd_milik,
+					apt_mutasi_obat.kd_pabrik,
+					apt_mutasi_obat.tgl_expire,
+					apt_mutasi_obat.batch,
+					apt_mutasi_obat.harga_pokok,
+					apt_stok_unit.kode_sas,ifnull(sum(apt_mutasi_obat.in_pbf),0) as in_pbf,ifnull(sum(apt_mutasi_obat.in_unit),0) as in_unit,ifnull(sum(apt_mutasi_obat.retur_jual),0) as retur_jual,
+					ifnull(sum(apt_mutasi_obat.out_jual),0) as out_jual,ifnull(sum(apt_mutasi_obat.out_unit),0) as out_unit,ifnull(sum(apt_mutasi_obat.retur_pbf),0) as retur_pbf,ifnull(apt_mutasi_obat.harga_beli,0) as harga_beli,
+					ifnull(sum(apt_mutasi_obat.stok_opname),0) as stok_opname,ifnull(apt_mutasi_obat.harga_beli,0) as harga_beli,ifnull(sum((apt_mutasi_obat.saldo_awal*apt_mutasi_obat.harga_beli)),0) as total_awal,
+					ifnull(sum(((apt_mutasi_obat.in_pbf+apt_mutasi_obat.in_unit)-apt_mutasi_obat.retur_pbf)),0) as jum_masuk, ifnull(sum((((apt_mutasi_obat.in_pbf+apt_mutasi_obat.in_unit)-apt_mutasi_obat.retur_pbf)*apt_mutasi_obat.harga_beli)),0) as total_masuk,
+					ifnull(sum(((apt_mutasi_obat.out_jual+apt_mutasi_obat.out_unit)-apt_mutasi_obat.retur_jual)),0) as jum_keluar,ifnull(sum(apt_mutasi_obat.out_disposal),0) as out_disposal,
+					ifnull(sum((((apt_mutasi_obat.out_jual+apt_mutasi_obat.out_unit)-apt_mutasi_obat.retur_jual)*apt_mutasi_obat.harga_beli)),0) as total_keluar,
+					ifnull(sum((apt_mutasi_obat.saldo_akhir*apt_mutasi_obat.harga_beli)),0) as total_akhir,x.saldo_awal,x1.saldo_akhir
+					from apt_obat,apt_satuan_kecil,apt_mutasi_obat 
+					join apt_stok_unit on apt_mutasi_obat.kd_obat = apt_stok_unit.kd_obat and
+					apt_mutasi_obat.kd_unit_apt= apt_stok_unit.kd_unit_apt and
+					apt_mutasi_obat.kd_milik= apt_stok_unit.kd_milik and
+					apt_mutasi_obat.kd_pabrik= apt_stok_unit.kd_pabrik and
+					apt_mutasi_obat.tgl_expire= apt_stok_unit.tgl_expire and
+					apt_mutasi_obat.batch= apt_stok_unit.batch and
+					apt_mutasi_obat.harga_pokok= apt_stok_unit.harga_pokok and 
+					kode_sas != '' 
+					left join (select ifnull(sum(apt_mutasi_obat.saldo_awal),0) as saldo_awal,ceil(apt_mutasi_obat.harga_beli) as harga_beli,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun' group by apt_mutasi_obat.kd_obat,ceil(apt_mutasi_obat.harga_beli)) as x on apt_mutasi_obat.kd_obat=x.kd_obat and ceil(apt_mutasi_obat.harga_beli)=x.harga_beli
+					left join (select ifnull(sum(apt_mutasi_obat.saldo_akhir),0) as saldo_akhir,ceil(apt_mutasi_obat.harga_beli) as harga_beli,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan1' and apt_mutasi_obat.tahun='$tahun' group by apt_mutasi_obat.kd_obat,ceil(apt_mutasi_obat.harga_beli)) as x1 on apt_mutasi_obat.kd_obat=x1.kd_obat and ceil(apt_mutasi_obat.harga_beli)=x1.harga_beli
+					where apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil and apt_mutasi_obat.kd_obat=apt_obat.kd_obat and
+					apt_mutasi_obat.bulan>='$bulan' and apt_mutasi_obat.bulan<='$bulan1' and apt_mutasi_obat.tahun='$tahun' $nomen $kat 
+					group by apt_mutasi_obat.kd_obat,
+					apt_mutasi_obat.kd_unit_apt,
+					apt_mutasi_obat.kd_milik,
+					apt_mutasi_obat.kd_pabrik,
+					apt_mutasi_obat.tgl_expire,
+					apt_mutasi_obat.batch,
+					apt_mutasi_obat.harga_pokok
+					having saldo_awal > 0 or in_pbf > 0  or in_unit > 0  or retur_jual > 0  or out_jual > 0  or out_unit > 0  or retur_pbf > 0  or saldo_akhir >0  or stok_opname > 0
+					order by apt_mutasi_obat.kd_obat
+					");
+		} else {
+			$query = $this->db->query("select apt_satuan_kecil.satuan_kecil,apt_mutasi_obat.kd_obat,apt_obat.nama_obat, apt_mutasi_obat.kd_unit_apt,
+					apt_mutasi_obat.kd_milik,
+					apt_mutasi_obat.kd_pabrik,
+					apt_mutasi_obat.tgl_expire,
+					apt_mutasi_obat.batch,
+					apt_mutasi_obat.harga_pokok,
+					apt_stok_unit.kode_sas,ifnull(sum(apt_mutasi_obat.in_pbf),0) as in_pbf,ifnull(sum(apt_mutasi_obat.in_unit),0) as in_unit,ifnull(sum(apt_mutasi_obat.retur_jual),0) as retur_jual,
+					ifnull(sum(apt_mutasi_obat.out_jual),0) as out_jual,ifnull(sum(apt_mutasi_obat.out_unit),0) as out_unit,ifnull(sum(apt_mutasi_obat.retur_pbf),0) as retur_pbf,ifnull(apt_mutasi_obat.harga_beli,0) as harga_beli,
+					ifnull(sum(apt_mutasi_obat.stok_opname),0) as stok_opname,ifnull(apt_mutasi_obat.harga_beli,0) as harga_beli,ifnull(sum((apt_mutasi_obat.saldo_awal*apt_mutasi_obat.harga_beli)),0) as total_awal,
+					ifnull(sum(((apt_mutasi_obat.in_pbf+apt_mutasi_obat.in_unit)-apt_mutasi_obat.retur_pbf)),0) as jum_masuk, ifnull(sum((((apt_mutasi_obat.in_pbf+apt_mutasi_obat.in_unit)-apt_mutasi_obat.retur_pbf)*apt_mutasi_obat.harga_beli)),0) as total_masuk,
+					ifnull(sum(((apt_mutasi_obat.out_jual+apt_mutasi_obat.out_unit)-apt_mutasi_obat.retur_jual)),0) as jum_keluar,ifnull(sum(apt_mutasi_obat.out_disposal),0) as out_disposal,
+					ifnull(sum((((apt_mutasi_obat.out_jual+apt_mutasi_obat.out_unit)-apt_mutasi_obat.retur_jual)*apt_mutasi_obat.harga_beli)),0) as total_keluar,
+					ifnull(sum((apt_mutasi_obat.saldo_akhir*apt_mutasi_obat.harga_beli)),0) as total_akhir,x.saldo_awal,x1.saldo_akhir
+					from apt_obat,apt_satuan_kecil,apt_mutasi_obat 
+					join apt_stok_unit on apt_mutasi_obat.kd_obat = apt_stok_unit.kd_obat and
+					apt_mutasi_obat.kd_unit_apt= apt_stok_unit.kd_unit_apt and
+					apt_mutasi_obat.kd_milik= apt_stok_unit.kd_milik and
+					apt_mutasi_obat.kd_pabrik= apt_stok_unit.kd_pabrik and
+					apt_mutasi_obat.tgl_expire= apt_stok_unit.tgl_expire and
+					apt_mutasi_obat.batch= apt_stok_unit.batch and
+					apt_mutasi_obat.harga_pokok= apt_stok_unit.harga_pokok and 
+					kode_sas != '' 
+					left join (select ifnull(sum(apt_mutasi_obat.saldo_awal),0) as saldo_awal,ceil(apt_mutasi_obat.harga_beli) as harga_beli,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan' and apt_mutasi_obat.tahun='$tahun' and apt_mutasi_obat.kd_unit_apt='$kd_unit_apt' group by apt_mutasi_obat.kd_obat,ceil(apt_mutasi_obat.harga_beli)) as x on apt_mutasi_obat.kd_obat=x.kd_obat and ceil(apt_mutasi_obat.harga_beli)=x.harga_beli
+					left join (select ifnull(sum(apt_mutasi_obat.saldo_akhir),0) as saldo_akhir,ceil(apt_mutasi_obat.harga_beli) as harga_beli,kd_obat from apt_mutasi_obat where apt_mutasi_obat.bulan='$bulan1' and apt_mutasi_obat.tahun='$tahun' and apt_mutasi_obat.kd_unit_apt='$kd_unit_apt' group by apt_mutasi_obat.kd_obat,ceil(apt_mutasi_obat.harga_beli)) as x1 on apt_mutasi_obat.kd_obat=x1.kd_obat and ceil(apt_mutasi_obat.harga_beli)=x1.harga_beli
+					where apt_obat.kd_satuan_kecil=apt_satuan_kecil.kd_satuan_kecil and apt_mutasi_obat.kd_obat=apt_obat.kd_obat and apt_mutasi_obat.kd_unit_apt='$kd_unit_apt' and
+					apt_mutasi_obat.bulan>='$bulan' and apt_mutasi_obat.bulan<='$bulan1' and apt_mutasi_obat.tahun='$tahun'  $nomen $kat
+					group by apt_mutasi_obat.kd_obat,
+					apt_mutasi_obat.kd_unit_apt,
+					apt_mutasi_obat.kd_milik,
+					apt_mutasi_obat.kd_pabrik,
+					apt_mutasi_obat.tgl_expire,
+					apt_mutasi_obat.batch,
+					apt_mutasi_obat.harga_pokok
+					having saldo_awal > 0 or in_pbf > 0  or in_unit > 0  or retur_jual > 0  or out_jual > 0  or out_unit > 0  or retur_pbf > 0  or saldo_akhir >0  or stok_opname > 0
 					order by apt_mutasi_obat.kd_obat");
 		}
-
+		// and (apt_mutasi_obat.kd_obat,
+		// 				apt_mutasi_obat.kd_unit_apt,
+		// 				apt_mutasi_obat.kd_milik,
+		// 				apt_mutasi_obat.kd_pabrik,
+		// 				apt_mutasi_obat.tgl_expire,
+		// 				apt_mutasi_obat.batch,
+		// 				apt_mutasi_obat.harga_pokok) in (
+		// 				select kd_obat,
+		// 				kd_unit_apt,
+		// 				kd_milik,
+		// 				kd_pabrik,
+		// 				tgl_expire,
+		// 				batch,
+		// 				harga_pokok from apt_stok_unit where kode_sas != ''
+		// 				)			
+		// die($this->db->last_query());
 		return $query->result_array();
 	}
 
@@ -2118,4 +2119,3 @@ class Mlaporanapt extends CI_Model
 		return $query->result_array();
 	}
 }
-?>

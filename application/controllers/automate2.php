@@ -1,23 +1,28 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 //class Laporanapt extends CI_Controller {
-class Automate extends CI_Controller
+class Automate2 extends CI_Controller
 {
 
     public function hitungobat($kd_obat = '')
     {
         if (!empty($kd_obat)) {
             $obat = $this->db->query('select * from apt_stok_unit where kd_obat="' . $kd_obat . '" ')->result();
+            echo 'hapus data obat ' . PHP_EOL;
+            // for($i=1;$i<=10;$i++){
+            //     echo '.';
+            //     sleep(1);
+            // }
+            $this->db->query('delete from obat_history where kode_obat="' . $kd_obat . '"  ');
         } else {
             $obat = $this->db->query('select * from apt_stok_unit  ')->result();
+            echo 'Kosongkan tabel ' . PHP_EOL;
+            // for($i=1;$i<=10;$i++){
+            //     echo '.';
+            //     sleep(1);
+            // }
+            $this->db->truncate('obat_history');
         }
-
-        echo 'Kosongkan tabel ' . PHP_EOL;
-        // for($i=1;$i<=10;$i++){
-        //     echo '.';
-        //     sleep(1);
-        // }
-        $this->db->truncate('obat_history');
 
         $no = 1;
         foreach ($obat as $ob) {
@@ -34,6 +39,7 @@ class Automate extends CI_Controller
                 'tgl_expired' => $ob->tgl_expire,
                 'batch' => $ob->batch,
                 'harga' => $ob->harga_pokok,
+                'kode_sas' => $ob->kode_sas,
             ))->result();
 
             foreach ($stokSo as $so) {
@@ -50,7 +56,7 @@ class Automate extends CI_Controller
                     'qty' => $so->stok_baru,
                     'status' => 'SO',
                     'id_join' => $so->nomor,
-                    'kode_sas' => $so->kode_sas
+                    'kode_sas' => $ob->kode_sas,
                 ));
                 $stok += $so->stok_baru;
             }
@@ -63,6 +69,7 @@ class Automate extends CI_Controller
                 'tgl_expire' => $ob->tgl_expire,
                 'no_batch' => $ob->batch,
                 'harga_pokok' => $ob->harga_pokok,
+                'kode_sas' => $ob->kode_sas,
             ))->result();
 
             foreach ($stokObatMasuk as $obatMasuk) {
@@ -79,7 +86,7 @@ class Automate extends CI_Controller
                     'qty' => $obatMasuk->qty_kcl,
                     'status' => 'M',
                     'id_join' => $obatMasuk->no_penerimaan,
-                    'kode_sas' => $obatMasuk->kode_sas
+                    'kode_sas' => $ob->kode_sas,
                 ));
                 $stok += $obatMasuk->qty_kcl;
             }
@@ -92,6 +99,7 @@ class Automate extends CI_Controller
                 'tgl_expire' => $ob->tgl_expire,
                 'batch' => $ob->batch,
                 'harga_pokok' => $ob->harga_pokok,
+                'kode_sas' => $ob->kode_sas,
             ))->result();
 
             foreach ($stokObatKeluar as $obatKeluar) {
@@ -108,7 +116,7 @@ class Automate extends CI_Controller
                     'qty' => $obatKeluar->qty,
                     'status' => 'K',
                     'id_join' => $obatKeluar->no_penjualan,
-                    // 'kode_sas' => $obatKeluar->kode_sas
+                    'kode_sas' => $ob->kode_sas,
                 ));
                 $stok_keluar += $obatKeluar->qty;
             }
@@ -122,6 +130,7 @@ class Automate extends CI_Controller
                 'tgl_expire' => $ob->tgl_expire,
                 'batch' => $ob->batch,
                 'harga_pokok' => $ob->harga_pokok,
+                'kode_sas' => $ob->kode_sas,
             ))->result();
 
             foreach ($stokObatDisposal as $obatDisposal) {
@@ -138,13 +147,11 @@ class Automate extends CI_Controller
                     'qty' => $obatDisposal->qty,
                     'status' => 'D',
                     'id_join' => $obatDisposal->no_disposal,
-                    'kode_sas' => $obatDisposal->kode_sas
+                    'kode_sas' => $ob->kode_sas,
                 ));
                 $stok_keluar += $obatDisposal->qty;
             }
 
-            echo $stok . PHP_EOL;;
-            echo $stok_keluar . PHP_EOL;;
             // //update jumlah stok
             $this->db->update('apt_stok_unit', array(
                 'stok' => $stok,
@@ -157,6 +164,7 @@ class Automate extends CI_Controller
                 'tgl_expire' => $ob->tgl_expire,
                 'batch' => $ob->batch,
                 'harga_pokok' => $ob->harga_pokok,
+                'kode_sas' => $ob->kode_sas,
             ));
         }
     }

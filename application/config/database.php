@@ -1,4 +1,4 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (! defined('BASEPATH')) exit('No direct script access allowed');
 /*
 | -------------------------------------------------------------------
 | DATABASE CONNECTIVITY SETTINGS
@@ -51,7 +51,7 @@ $active_record = TRUE;
 $db['default']['hostname'] = '172.17.0.1';
 $db['default']['username'] = 'indrayoga';
 $db['default']['password'] = 'indrayoga123';
-$db['default']['database'] = 'gfk_offline_2020';//db_gfk_balikpapan_2024
+$db['default']['database'] = 'gfk_offline_2024'; //db_gfk_balikpapan_2024
 $db['default']['dbdriver'] = 'mysql';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = TRUE;
