@@ -891,6 +891,131 @@ class Mlaporanapt extends CI_Model
 		return $query->result_array();
 	}
 
+	function getMutasiObatSasBulanan2($bulan, $tahun)
+	{
+		$query = $this->db->query("select
+					asu.kd_obat,
+					apt_obat.nama_obat,
+					apt_obat.kd_satuan_kecil,
+					apt_pabrik.nama_pabrik,
+					asu.kode_sas,
+					asu.batch,
+					asu.tgl_expire,
+					apt_unit.nama_unit_apt,
+					stok_awal.saldo_awal,
+					stok_akhir.saldo_akhir,
+					penerimaan.tanggal_masuk,
+					penerimaan.no_faktur,
+					penerimaan.supplier,
+					penerimaan.qty_kcl as jumlah_penerimaan,
+					pengeluaran.tanggal_keluar,
+					pengeluaran.no_sbbk,
+					pengeluaran.customer,
+					pengeluaran.qty as jumlah_keluar
+				from
+					apt_stok_unit asu 
+					join apt_obat on asu.kd_obat = apt_obat.kd_obat
+					join apt_pabrik on asu.kd_pabrik = apt_pabrik.kd_pabrik
+					join apt_unit on asu.kd_unit_apt = apt_unit.kd_unit_apt
+				left join (select * from apt_mutasi_obat where bulan='01' and tahun='$tahun') stok_awal ON 
+					asu.kd_obat = stok_awal.kd_obat
+					and
+					asu.kd_unit_apt = stok_awal.kd_unit_apt
+					and
+					asu.kd_milik = stok_awal.kd_milik
+					and
+					asu.kd_pabrik = stok_awal.kd_pabrik
+					and
+					asu.tgl_expire = stok_awal.tgl_expire
+					and
+					asu.harga_pokok = stok_awal.harga_pokok
+					and
+					asu.batch = stok_awal.batch
+				left join (select * from apt_mutasi_obat where bulan='$bulan' and tahun='$tahun') stok_akhir ON 
+					asu.kd_obat = stok_akhir.kd_obat
+					and
+					asu.kd_unit_apt = stok_akhir.kd_unit_apt
+					and
+					asu.kd_milik = stok_akhir.kd_milik
+					and
+					asu.kd_pabrik = stok_akhir.kd_pabrik
+					and
+					asu.tgl_expire = stok_akhir.tgl_expire
+					and
+					asu.harga_pokok = stok_akhir.harga_pokok
+					and
+					asu.batch = stok_akhir.batch
+				left join(
+					select
+						kd_obat,
+						no_faktur,
+						date(tgl_penerimaan) as tanggal_masuk,
+						a1.nama as supplier,
+						b.no_batch,
+						b.kd_unit_apt,
+						b.kd_milik,
+						b.kd_pabrik,
+						b.tgl_expire,
+						b.harga_pokok,
+						b.qty_kcl
+					from
+						apt_penerimaan a
+					join apt_supplier a1 on
+						a.kd_supplier = a1.kd_supplier
+					join apt_penerimaan_detail b on
+						a.no_penerimaan = b.no_penerimaan ) as penerimaan on
+					asu.kd_obat = penerimaan.kd_obat
+					and
+					asu.kd_unit_apt = penerimaan.kd_unit_apt
+					and
+					asu.kd_milik = penerimaan.kd_milik
+					and
+					asu.kd_pabrik = penerimaan.kd_pabrik
+					and
+					asu.tgl_expire = penerimaan.tgl_expire
+					and
+					asu.harga_pokok = penerimaan.harga_pokok
+					and
+					asu.batch = penerimaan.no_batch
+				left join(
+				select
+					kd_obat,
+					no_sbbk,
+					date(tgl_penjualan) as tanggal_keluar,
+					a1.nama as customer,
+					b.tgl_expire,
+					b.kd_unit_apt,
+					b.kd_milik,
+					b.batch,
+					b.harga_pokok,
+					b.kd_pabrik,
+					b.qty
+				from
+					apt_penjualan a
+				join gfk_puskesmas a1 on
+					a.customer_id = a1.id
+				join apt_penjualan_detail b on
+					a.no_penjualan = b.no_penjualan 
+					) as pengeluaran on
+				asu.kd_obat = pengeluaran.kd_obat and
+					asu.kd_unit_apt = pengeluaran.kd_unit_apt
+					and
+					asu.kd_milik = pengeluaran.kd_milik
+					and
+					asu.kd_pabrik = pengeluaran.kd_pabrik
+					and
+					asu.tgl_expire = pengeluaran.tgl_expire
+					and
+					asu.harga_pokok = pengeluaran.harga_pokok
+					and
+					asu.batch = pengeluaran.batch
+
+				where
+					kode_sas != ''");
+
+		return $query->result_array();
+	}
+
 	function getMutasiObatPsikotropikaBulanan($kd_unit_apt, $bulan, $tahun)
 	{
 		if (empty($kd_unit_apt)) {

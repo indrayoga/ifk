@@ -42,7 +42,7 @@
                         <div class="box">
                             <header>
                                 <div class="icons"><i class="icon-edit"></i></div>
-                                <h5>LAPORAN MUTASI OBAT</h5>
+                                <h5>LAPORAN MUTASI OBAT SAS</h5>
                                 <!-- .toolbar -->
                                 <div class="toolbar" style="height:auto;">
                                     <ul class="nav nav-tabs">
@@ -170,12 +170,6 @@
                                             <th style="text-align:center;vertical-align:middle;" class="span2">PEMAKAIAN</th>
                                             <th style="text-align:center;vertical-align:middle;" class="span2">KARANTINA</th>
                                             <th style="text-align:center;vertical-align:middle;" class="span2">SISA STOK</th>
-                                            <th style="text-align:center;vertical-align:middle;" class="span2"> Bulan Pemakaian</th>
-                                            <th style="text-align:center;vertical-align:middle;" class="span2"> RATA RATA PEMAKAIAN</th>
-                                            <th style="text-align:center;vertical-align:middle;" class="span2">KECUKUPAN BULAN</th>
-                                            <th style="text-align:center;vertical-align:middle;" class="span2">KEBUTUHAN</th>
-                                            <th style="text-align:center;vertical-align:middle;" class="span2">HARGA</th>
-                                            <th style="text-align:center;vertical-align:middle;" class="span2">TOTAL</th>
                                         </tr>
 
                                     </thead>
@@ -210,13 +204,6 @@
                                                 <td style="text-align:right;width:15px !important;"><?php echo number_format($item['out_jual'], 0, '.', ',') ?></td>
                                                 <td style="text-align:right;width:15px !important;"><?php echo number_format($item['out_disposal'], 0, '.', ',') ?></td>
                                                 <td style="text-align:right;width:25px !important;"><?php echo number_format($item['saldo_akhir'], 0, '.', ',') ?></td>
-                                                <td style="text-align:right;width:25px !important;"><?php echo number_format($jmlbulanobat, 0, '.', ',') ?></td>
-                                                <td style="text-align:right;width:25px !important;"><?php echo number_format($opt, 0, '.', ',') ?></td>
-                                                <td style="text-align:right;width:15px !important;"><?php if ($opt > 0) echo number_format($item['saldo_akhir'] / $opt, 0, '.', ',');
-                                                                                                    else echo 0; ?></td>
-                                                <td style="text-align:right;width:25px !important;"><?php echo number_format($opt / $bulan_kebutuhan, 0, '.', ',') ?></td>
-                                                <td style="text-align:right;width:25px !important;"><?php echo number_format($item['harga_beli'], 0, '.', ',') ?></td>
-                                                <td style="text-align:right;width:25px !important;"><?php echo number_format($total, 0, '.', ',') ?></td>
                                             </tr>
                                         <?php
                                             $no++;

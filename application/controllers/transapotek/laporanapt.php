@@ -1002,12 +1002,7 @@ class Laporanapt extends Rumahsakit
 
 		$data = array(
 			'sumberdana' => $this->mlaporanapt->sumberdana(),
-			'items' => $this->db->query('select *,apt_stok_unit.* from apt_stok_unit 
-					                join apt_obat on apt_stok_unit.kd_obat=apt_obat.kd_obat 
-					                left join apt_satuan_kecil on apt_obat.kd_satuan_kecil = apt_satuan_kecil.kd_satuan_kecil 
-					                left join apt_unit on apt_stok_unit.kd_unit_apt = apt_unit.kd_unit_apt 
-					                left join apt_pabrik on apt_stok_unit.kd_pabrik = apt_pabrik.kd_pabrik
-					                where kode_sas !="" ')->result_array(),
+			'items' => $this->mlaporanapt->getMutasiObatSasBulanan2('12', 2024),
 			'unitapotek' => $this->mlaporanapt->ambilData('apt_unit'),
 			'bulan' => $bulan,
 			'tahun' => $tahun,
@@ -7285,6 +7280,78 @@ class Laporanapt extends Rumahsakit
 		$objWriter = IOFactory::createWriter($objPHPExcel, 'Excel5');
 		$objWriter->save("download/bulanan.xls");
 		header("Location: " . base_url() . "download/bulanan.xls");
+	}
+
+	public function excellplpobulanansas()
+	{
+		// if ($kd_unit_apt == "NULL") $kd_unit_apt = "";
+		$this->load->library('phpexcel');
+		$this->load->library('PHPExcel/iofactory');
+		//$objPHPExcel = new PHPExcel(); 
+		$objPHPExcel = IOFactory::load("./template/lappsikotropika.xls");
+		$objPHPExcel->getProperties()->setTitle("title")->setDescription("description");
+		$items = array();
+		$items = $this->mlaporanapt->getMutasiObatSasBulanan2('12', 2024);
+		//debugvar($kd_unit_apt);
+		$baris = 9;
+		$nomor = 1;
+		$kdobat = "";
+		$bl = array('01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April', '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember');
+		// $objPHPExcel->getActiveSheet()->setCellValue('S4', $bl[$bulan]);
+		// $objPHPExcel->getActiveSheet()->setCellValue('S5', $tahun);
+		foreach ($items as $item) {
+
+
+			for ($x = 'A'; $x <= 'S'; $x++) {
+				$objPHPExcel->getActiveSheet()->getStyle($x . $baris)->applyFromArray(array(
+					'font'    => array(
+						'name'      => 'calibri',
+						'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+						'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+						'size'		=> 11 /*untuk ukuran tulisan yg hasil query bwt yg di dlm tabel*/,
+						'color'     => array('rgb' => '000000')
+					),
+					'borders' => array(
+						'bottom'     => array(
+							'style' => PHPExcel_Style_Border::BORDER_THIN,
+							'color' => array('rgb' => '000000')
+						),
+						'top'     => array('style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('rgb' => '000000')),
+						'left'     => array('style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('rgb' => '000000')),
+						'right'     => array(
+							'style' => PHPExcel_Style_Border::BORDER_THIN,
+							'color' => array('rgb' => '000000')
+						)
+					)
+				));
+			}
+
+
+
+			if ($item['kd_obat'] != $kdobat) $objPHPExcel->getActiveSheet()->setCellValue('A' . $baris, $nomor);
+			if ($item['kd_obat'] != $kdobat) $objPHPExcel->getActiveSheet()->setCellValue('B' . $baris, $item['nama_obat']);
+			if ($item['kd_obat'] != $kdobat) $objPHPExcel->getActiveSheet()->setCellValue('C' . $baris, $item['kd_satuan_kecil']);
+			$objPHPExcel->getActiveSheet()->setCellValue('E' . $baris, number_format($item['saldo_awal'], 2, '.', ','));
+			$objPHPExcel->getActiveSheet()->setCellValue('F' . $baris, convertDate($item['tanggal_masuk']));
+			$objPHPExcel->getActiveSheet()->setCellValue('G' . $baris, $item['no_faktur']);
+			$objPHPExcel->getActiveSheet()->setCellValue('H' . $baris, $item['supplier']);
+			$objPHPExcel->getActiveSheet()->setCellValue('I' . $baris, $item['batch']);
+			$objPHPExcel->getActiveSheet()->setCellValue('J' . $baris, $item['jumlah_penerimaan']);
+			// if ($item['kd_obat'] != $kdobat) $objPHPExcel->getActiveSheet()->setCellValue('K' . $baris, number_format($persediaan, 2, '.', ','));
+			$objPHPExcel->getActiveSheet()->setCellValue('L' . $baris, convertDate($item['tanggal_keluar']));
+			$objPHPExcel->getActiveSheet()->setCellValue('M' . $baris, $item['no_sbbk']);
+			$objPHPExcel->getActiveSheet()->setCellValue('N' . $baris, $item['customer']);
+			$objPHPExcel->getActiveSheet()->setCellValue('O' . $baris, convertDate($item['tgl_expire']));
+			$objPHPExcel->getActiveSheet()->setCellValue('P' . $baris, number_format($item['jumlah_keluar'], 2, '.', ','));
+			$objPHPExcel->getActiveSheet()->setCellValue('Q' . $baris, number_format($item['jumlah_keluar'], 2, '.', ','));
+			// if ($item['kd_obat'] != $kdobat) $objPHPExcel->getActiveSheet()->setCellValue('R' . $baris, number_format($saldoakhir, 2, '.', ','));
+			if ($item['kd_obat'] != $kdobat) $nomor = $nomor + 1;
+			$baris = $baris + 1;
+			$kdobat = $item['kd_obat'];
+		}
+		$objWriter = IOFactory::createWriter($objPHPExcel, 'Excel5');
+		$objWriter->save("download/lappsikotropika.xls");
+		header("Location: " . base_url() . "download/lapobatsas.xls");
 	}
 
 	public function excellplpobulananpsikotropika($bulan = "", $tahun = "", $kd_unit_apt = "")

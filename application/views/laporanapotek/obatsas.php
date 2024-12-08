@@ -104,7 +104,7 @@
                                             <label for="text1" class="control-label">&nbsp;</label>
                                             <div class="controls with-tooltip">
                                                 <!--<button class="btn btn-primary" type="submit" name="submit" value="cari"><i class="icon-search"></i> Submit</button>-->
-                                                <a class="btn " target="_newtab" href="<?= base_url('index.php/transapotek/laporanapt/cetakobatsas') ?>"><i class="icon-print"></i> CETAK EXCEL</a>
+                                                <a class="btn " target="_newtab" href="<?= base_url('index.php/transapotek/laporanapt/excellplpobulanansas') ?>"><i class="icon-print"></i> CETAK EXCEL</a>
 
                                             </div>
                                         </div>
@@ -153,131 +153,37 @@
                                     </thead>
                                     <tbody>
                                         <?php
+                                        $batch = "";
+                                        $no_faktur = "";
+                                        $no = 1;
                                         foreach ($items as $item) {
                                         ?>
 
                                             <tr>
                                                 <td></td>
-                                                <td><?= $item['nama_obat'] ?></td>
-                                                <td><?= $item['kd_satuan_kecil'] ?></td>
-                                                <td><?= $item['batch'] ?></td>
-                                                <td><?= convertDate($item['tgl_expire']) ?></td>
-                                                <td><?= $item['nama_pabrik'] ?></td>
-                                                <td><?= $item['kode_sas'] ?></td>
-                                                <td><?= $item['nama_unit_apt'] ?></td>
-                                                <?php
-                                                //ambil stok AWAL
-                                                $so = $this->db->get_where('history_perubahan_stok', array(
-                                                    'kd_obat' => $item['kd_obat'],
-                                                    'kd_unit_apt' => $item['kd_unit_apt'],
-                                                    'kd_milik' => $item['kd_milik'],
-                                                    'kd_pabrik' => $item['kd_pabrik'],
-                                                    'tgl_expired' => $item['tgl_expire'],
-                                                    'harga' => $item['harga_pokok'],
-                                                    'batch' => $item['batch'],
-                                                ))->row_array();
-                                                if (!empty($so)) {
-                                                ?>
-                                                    <td><?= $so['stok_baru'] ?></td>
-                                                <?php
-                                                } else {
-                                                ?>
-                                                    <td>0</td>
-                                                <?php
-                                                }
-
-                                                ?>
+                                                <td><?php if ($item['batch'] != $batch) echo $item['nama_obat']; ?></td>
+                                                <td><?php if ($item['batch'] != $batch) echo  $item['kd_satuan_kecil']; ?></td>
+                                                <td><?php if ($item['batch'] != $batch) echo  $item['batch']; ?></td>
+                                                <td><?php if ($item['batch'] != $batch) echo  convertDate($item['tgl_expire']); ?></td>
+                                                <td><?php if ($item['batch'] != $batch) echo  $item['nama_pabrik']; ?></td>
+                                                <td><?php if ($item['batch'] != $batch) echo  $item['kode_sas']; ?></td>
+                                                <td><?php if ($item['batch'] != $batch) echo  $item['nama_unit_apt']; ?></td>
+                                                <td><?php if ($item['batch'] != $batch) echo  $item['saldo_awal']; ?></td>
+                                                <td><?php if ($item['no_faktur'] != $no_faktur) echo  $item['tanggal_masuk']; ?></td>
+                                                <td><?php if ($item['no_faktur'] != $no_faktur) echo  $item['no_faktur']; ?></td>
+                                                <td><?php if ($item['no_faktur'] != $no_faktur) echo  $item['supplier']; ?></td>
+                                                <td><?php if ($item['no_faktur'] != $no_faktur) echo  $item['jumlah_penerimaan']; ?></td>
+                                                <td><?= $item['tanggal_keluar'] ?></td>
+                                                <td><?= $item['no_sbbk'] ?></td>
+                                                <td><?= $item['customer'] ?></td>
+                                                <td><?= $item['jumlah_keluar'] ?></td>
                                             </tr>
-                                            <?php
-                                            //PENERIMAAN
-
-                                            $penerimaanObat = $this->db->select('*,date(tgl_penerimaan) as tgl_penerimaan')
-                                                ->join('apt_penerimaan', 'apt_penerimaan_detail.no_penerimaan=apt_penerimaan.no_penerimaan')
-                                                ->join('apt_supplier', 'apt_penerimaan.kd_supplier=apt_supplier.kd_supplier')
-                                                ->get_where('apt_penerimaan_detail', array(
-                                                    'kd_obat' => $item['kd_obat'],
-                                                    'apt_penerimaan_detail.kd_unit_apt' => $item['kd_unit_apt'],
-                                                    'kd_milik' => $item['kd_milik'],
-                                                    'kd_pabrik' => $item['kd_pabrik'],
-                                                    'tgl_expire' => $item['tgl_expire'],
-                                                    'harga_pokok' => $item['harga_pokok'],
-                                                    'no_batch' => $item['batch'],
-                                                ))->result_array();
-                                            // debugvar($this->db->last_query());
-                                            // debugvar(count($penerimaan));
-                                            if (!empty($penerimaanObat)) {
-                                                foreach ($penerimaanObat as $pene) {
-                                            ?>
-                                                    <tr>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td><?= convertDate($pene['tgl_penerimaan']) ?></td>
-                                                        <td><?= @$pene['no_faktur'] ?></td>
-                                                        <td><?= @$pene['nama'] ?></td>
-                                                        <td><?= @$pene['qty_kcl'] ?></td>
-                                                    </tr>
-                                            <?php
-                                                }
-                                            }
-
-                                            ?>
-
-                                            <?php
-                                            //PENERIMAAN
-
-                                            $pengeluaran = $this->db->select('*,date(tgl_penjualan) as tgl_penjualan')
-                                                ->join('apt_penjualan', 'apt_penjualan_detail.no_penjualan=apt_penjualan.no_penjualan')
-                                                ->join('gfk_puskesmas', 'apt_penjualan.customer_id=gfk_puskesmas.id')
-                                                ->get_where('apt_penjualan_detail', array(
-                                                    'kd_obat' => $item['kd_obat'],
-                                                    'apt_penjualan_detail.kd_unit_apt' => $item['kd_unit_apt'],
-                                                    'kd_milik' => $item['kd_milik'],
-                                                    'kd_pabrik' => $item['kd_pabrik'],
-                                                    'tgl_expire' => $item['tgl_expire'],
-                                                    'harga_pokok' => $item['harga_pokok'],
-                                                    'batch' => $item['batch'],
-                                                ))->result_array();
-                                            // debugvar($this->db->last_query());
-                                            if (!empty($pengeluaran)) {
-                                                foreach ($pengeluaran as $pen) {
-                                            ?>
-                                                    <tr>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td><?= convertDate($pen['tgl_penjualan']) ?></td>
-                                                        <td><?= @$pen['no_sbbk'] ?></td>
-                                                        <td><?= @$pen['nama'] ?></td>
-                                                        <td><?= @$pen['qty'] ?></td>
-                                                    </tr>
-                                            <?php
-                                                }
-                                            }
-
-                                            ?>
-
-
                                         <?php
+                                            if ($item['kd_obat'] != $batch)  $no++;
+                                            $batch = $item['batch'];
+                                            $no_faktur = $item['no_faktur'];
                                         }
                                         ?>
-
                                     </tbody>
                                 </table>
                             </div>
